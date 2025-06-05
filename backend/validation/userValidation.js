@@ -73,6 +73,42 @@ const schemas = {
         "string.empty": "New password is required",
       }),
   }),
+  changePasswordSchema: Joi.object({
+    email: Joi.string()
+      .pattern(/^[a-zA-Z0-9._%+-]+@gmail\.com$/)
+      .message("Only Gmail addresses are allowed")
+      .required()
+
+  }),
+  UpdatechangePasswordSchema: Joi.object({
+    email: Joi.string()
+      .pattern(/^[a-zA-Z0-9._%+-]+@gmail\.com$/)
+      .message("Only Gmail addresses are allowed")
+      .required(),
+    oldPassword: Joi.string()
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Password must contain lowercase, uppercase, 0-9, and special character",
+        "string.empty": "Old password is required",
+      }),
+    newPassword: Joi.string()
+      .pattern(
+        new RegExp(
+          "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,31}$"
+        )
+      )
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Password must contain lowercase, uppercase, 0-9, and special character",
+        "string.empty": "New password is required",
+      }),
+    PassChngVerificationCode: Joi.string().required().messages({
+      "string.empty": "Verification code is required",
+    }),
+  }),
+  
   verifiedAccount: Joi.object({
     email: Joi.string()
       .pattern(/^[a-zA-Z0-9._%+-]+@gmail\.com$/)

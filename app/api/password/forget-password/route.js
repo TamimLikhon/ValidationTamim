@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/backend/database/connection";
 import User from "@/backend/models/userModel";
-import transport from "@/backend/controllers/mailer";
+import transport from "@/backend/utils/mailer";
 import bcrypt from "bcrypt";
 
 export async function POST(request) {

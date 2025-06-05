@@ -34,6 +34,14 @@ const userSchema = new mongoose.Schema({
     verificationCodeExpires: {
         type: Date,
         default: null,
+    },
+    passChangeCode: {
+        type: String,
+        default: null,
+    },
+    passChangeCodeExpires: {
+        type: Date,
+        default: null,
     }
 
 }, {

@@ -3,7 +3,7 @@ import User from "@/backend/models/userModel";
 import runValidation from "@/backend/validation/joivalidation";
 import schemas from "@/backend/validation/userValidation";
 import bcrypt from "bcrypt";
-import transport from "@/backend/controllers/mailer";
+import transport from "@/backend/utils/mailer";
 export async function POST(request) {
   try {
     await connectToDatabase();
@@ -18,6 +18,13 @@ export async function POST(request) {
     const user = await User.findOne({ email}).select("+password");
     if (!user) {
       return new Response(JSON.stringify({ message: "Invalid Email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if(user.AccountVerified){
+      return new Response(JSON.stringify({ message: "Accounts already verified" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });

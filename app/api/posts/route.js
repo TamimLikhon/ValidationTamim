@@ -1,39 +1,34 @@
 import { connectToDatabase } from "@/backend/database/connection";
 import Post from "@/backend/models/postModel";
 import { verifyToken } from "@/backend/utils/jwt";
-
+import { getUserFromRequest } from "@/backend/utils/getUserFromToken";
 export async function GET(request) {
   try {
     await connectToDatabase();
+    // // 📦 Fetch posts for this user
+    // const posts = await Post.find({ createdBy: userId });
 
-    // 🔒 Extract token from cookie
-    const cookieHeader = request.headers.get("cookie");
-    if (!cookieHeader) {
-      return new Response(JSON.stringify({ message: "Unauthorized: No cookie" }), {
-        status: 401,
+        // ✅ Get user from token
+    const { user, error, status } = getUserFromRequest(request);
+    if (error) {
+      return new Response(JSON.stringify({ message: error }), {
+        status,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const match = cookieHeader.match(/Authorization=Bearer\s([^;]+)/);
-    const token = match?.[1];
+    // const { searchParams } = new URL(request.url);
+    // const postId = searchParams.get("id");
 
-    if (!token) {
-      return new Response(JSON.stringify({ message: "Unauthorized: No token found in cookie" }), {
-        status: 401,
+    const post = await Post.find(user.postId).populate('createdBy', 'email');
+    if (!post) {
+      return new Response(JSON.stringify({ message: "Post not found" }), {
+        status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // 🔍 Verify token and get userId
-    const decoded = verifyToken(token);
-    const userId = decoded.userId;
-
-    // 📦 Fetch posts for this user
-    const posts = await Post.find({ createdBy: userId });
-
-
-    return new Response(JSON.stringify({ message: "Posts fetched successfully", posts }), {
+    return new Response(JSON.stringify({ message: "Posts fetched successfully", post }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

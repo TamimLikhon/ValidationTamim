@@ -3,6 +3,8 @@ import Post from "@/backend/models/postModel";
 import runValidation from "@/backend/validation/joivalidation";
 import schemas from "@/backend/validation/userValidation";
 import { verifyToken } from "@/backend/utils/jwt";
+import { getUserFromRequest } from "@/backend/utils/getUserFromToken";
+
 export async function POST(request) {
   try {
     await connectToDatabase();
@@ -10,36 +12,22 @@ export async function POST(request) {
     const body = await request.json();
     const { Title, Description } = body;
 
-    // Validate input without createdBy
     const validationError = runValidation(schemas.PostSchema, body);
     if (validationError) return validationError;
 
-   const cookieHeader = request.headers.get("cookie");
-
-    if (!cookieHeader) {
-      return new Response(JSON.stringify({ message: "Unauthorized: No cookie" }), {
-        status: 401,
+    // Validate token
+    const { user, error, status } = getUserFromRequest(request);
+    if (error) {
+      return new Response(JSON.stringify({ message: error }), {
+        status,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Extract Bearer token from cookie
-    const match = cookieHeader.match(/Authorization=Bearer\s([^;]+)/);
-    const token = match?.[1];
-
-     if (!token) {
-      return new Response(JSON.stringify({ message: "Unauthorized: No token found in cookie" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // ✅ Verify token
-    const decoded = verifyToken(token);
     const newPost = new Post({
       Title,
       Description,
-      createdBy: decoded.userId,
+      createdBy: user.userId,
     });
 
     await newPost.save();

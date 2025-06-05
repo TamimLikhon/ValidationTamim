@@ -1,22 +1,20 @@
 import { connectToDatabase } from "@/backend/database/connection";
 import Post from "@/backend/models/postModel";
+import schemas from "@/backend/validation/userValidation";
+import runValidation from "@/backend/validation/joivalidation";
+import { verifyToken } from "@/backend/utils/jwt";
 import { getUserFromRequest } from "@/backend/utils/getUserFromToken";
 
-export async function DELETE(request) {
+export async function PUT(request) {
   try {
     await connectToDatabase();
+    const body = await request.json();
+    const { Title, Description } = body;
 
-    const { searchParams } = new URL(request.url);
-    const postId = searchParams.get("id");
+    const validationError = runValidation(schemas.PostSchema, body);
+    if (validationError) return validationError;
 
-    if (!postId) {
-      return new Response(JSON.stringify({ message: "Post ID required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // ✅ Validate token
+    //validate Token
     const { user, error, status } = getUserFromRequest(request);
     if (error) {
       return new Response(JSON.stringify({ message: error }), {
@@ -25,7 +23,9 @@ export async function DELETE(request) {
       });
     }
 
-    const post = await Post.findById(postId).select("+createdBy");
+    const { searchParams } = new URL(request.url);
+    const postId = searchParams.get("id");
+    const post = await Post.findById(postId);
 
     if (!post) {
       return new Response(JSON.stringify({ message: "Post not found" }), {
@@ -33,27 +33,32 @@ export async function DELETE(request) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
     if (post.createdBy.toString() !== user.userId) {
       return new Response(
         JSON.stringify({
-          message: "Unauthorized: You aren't authorized to do this action",
+          message: "Unauthorized: You can only edit your own posts",
         }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
-    await Post.findByIdAndDelete(postId);
+    post.Title = Title;
+    post.Description = Description;
+
+    await post.save();
 
     return new Response(
-      JSON.stringify({ message: "Post DELETED successfully" }),
+      JSON.stringify({ message: "Post updated successfully", post }),
       {
-        status: 200,
+        status: 201,
         headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("DELETE /posts error:", error.message);
+    console.error("PUT /posts/edit error:", error.message);
     return new Response(
       JSON.stringify({
         message: "Internal Server Error",
