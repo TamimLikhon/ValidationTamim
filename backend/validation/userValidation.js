@@ -136,6 +136,33 @@ const schemas = {
       "string.empty": "Verification code is required",
     }),
   }),
+  twofacschema: Joi.object({
+    email: Joi.string()
+      .pattern(/^[a-zA-Z0-9._%+-]+@gmail\.com$/)
+      .message("Only Gmail addresses are allowed")
+      .required(),
+    password: Joi.string()
+      .pattern(
+        new RegExp(
+          "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,31}$"
+        )
+      )
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Password must contain lowercase, uppercase, 0-9, and special character",
+        "string.empty": "Password is required",
+      }),
+  }),
+  twofaVerificationSchema: Joi.object({
+    email: Joi.string()
+      .pattern(/^[a-zA-Z0-9._%+-]+@gmail\.com$/)
+      .message("Only Gmail addresses are allowed")
+      .required(),
+    twofaCode: Joi.string().required().messages({
+      "string.empty": "Two-factor authentication code is required",
+    }),
+  }),
    PostSchema: Joi.object({
     Title: Joi.string().min(3).max(60).required(),
     Description: Joi.string().min(3).max(600).required(),

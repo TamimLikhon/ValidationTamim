@@ -25,6 +25,13 @@ export async function POST(request) {
       });
     }
 
+        if(user.AccountVerified === false) {
+      return new Response(JSON.stringify({ message: "Only Verified user can change password" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // ✅ Get user from token
     const { error, status } = getUserFromRequest(request);
     if (error) {

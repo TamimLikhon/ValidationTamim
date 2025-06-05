@@ -42,7 +42,23 @@ const userSchema = new mongoose.Schema({
     passChangeCodeExpires: {
         type: Date,
         default: null,
-    }
+    },
+    twofaEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    twofaSecret: {
+        type: String,
+        default: null,
+    },
+    twofaCode: {
+        type: String,
+        default: [],
+    },
+    twofaCodeExpires: {
+        type: Date,
+        default: null,
+    },
 
 }, {
     timestamps: true,

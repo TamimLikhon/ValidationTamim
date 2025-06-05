@@ -17,6 +17,13 @@ export async function POST(request) {
       });
     }
 
+    if(user.AccountVerified === false) {
+      return new Response(JSON.stringify({ message: "Only Verified user can change password" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Generate a random 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedCode = await bcrypt.hash(code, 10);
